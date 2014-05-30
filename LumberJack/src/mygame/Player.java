@@ -25,23 +25,45 @@ public class Player extends Node {
   public int         score;
   public int         wood;
   public BetterCharacterControl playerPhys;
-  public int fireLevel;
+  public int         fireLevel;
+  public float       speedMult;
+  public float       strafeMult;
+  public boolean     hasSwung;
+  public long        swingDelay;
   
   public void swing() {
-    armChannel.setAnim("ArmSwing");
-    armChannel.setSpeed(2);
-    armChannel.setLoopMode(LoopMode.DontLoop);
-    swing = true;
+      
+    if (!hasSwung) {
+      armChannel.setAnim("ArmSwing");
+      armChannel.setSpeed(2);
+      armChannel.setLoopMode(LoopMode.DontLoop);
+      swingDelay = System.currentTimeMillis()/1000;
+      swing      = true;
+      }
+    
     }
   
   public void run(){
-    armChannel.setAnim("ArmRun");
-    legChannel.setAnim("LegRun");
+    if (!armChannel.getAnimationName().equals("ArmRun") && !hasSwung){
+      armChannel.setAnim("ArmRun");
+      }
+    
+    if (!legChannel.getAnimationName().equals("LegRun")){
+      legChannel.setAnim("LegRun");
+      }
+    
     }
   
   public void idle(){
-    armChannel.setAnim("ArmIdle");
-    legChannel.setAnim("LegsIdle");  
+
+    if (!armChannel.getAnimationName().equals("ArmIdle") && !hasSwung){
+      armChannel.setAnim("ArmIdle");
+      }
+    
+    if (!legChannel.getAnimationName().equals("LegsIdle")){
+      legChannel.setAnim("LegsIdle");  
+      }
+    
     }
     
 }

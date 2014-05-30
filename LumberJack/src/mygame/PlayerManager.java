@@ -19,7 +19,6 @@ import com.jme3.math.Vector3f;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.texture.Texture;
-import java.util.Random;
 
 /**
  *
@@ -57,12 +56,15 @@ public class PlayerManager extends AbstractAppState {
     TextureKey key     = new TextureKey("Models/Person/Person.png", true);
     Texture    tex     = assetManager.loadTexture(key);
     Material   mat     = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-    player.playerPhys  = new BetterCharacterControl(.2f, 2f, 50f);
+    player.playerPhys  = new BetterCharacterControl(.1f, 1.5f, 100f);
     
     mat.setTexture("ColorMap", tex);
     player.model.setLocalTranslation(0, 1.75f, 0);
     
     fireDie = System.currentTimeMillis()/1000;
+    
+    player.hasSwung = false;
+    player.swingDelay = System.currentTimeMillis()/1000;
     
     Node     axe    = (Node) assetManager.loadModel("Models/axe/axe.j3o");
     Material axeMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
@@ -76,7 +78,7 @@ public class PlayerManager extends AbstractAppState {
     
     player.addControl(player.playerPhys);
     physics.getPhysicsSpace().add(player.playerPhys);
-    player.playerPhys.warp(new Vector3f(20, 15, 20));
+    player.playerPhys.warp(new Vector3f(0, 5, 0));
         
     player.scale(.3f);
     
@@ -91,7 +93,8 @@ public class PlayerManager extends AbstractAppState {
     player.attachChild(player.model);
     rootNode.attachChild(player);
     
-    player.idle();
+    player.armChannel.setAnim("ArmIdle");
+    player.legChannel.setAnim("LegsIdle");
     
     }
   
@@ -113,20 +116,18 @@ public class PlayerManager extends AbstractAppState {
       if (player.getWorldTranslation().distance(fire.getWorldTranslation()) < 3) {
         if (player.wood > 0) {
           player.wood--;
+          //stateManager.getState(GuiManager.class).woodInd.setCurrentValue(player.wood);
           player.fireLevel++;
           }
         }
       
       player.swing = false;
+      player.hasSwung = true;
       
       }
     
-    if (System.currentTimeMillis()/1000 - fireDie > 1) {
-      fireDie = System.currentTimeMillis()/1000;
-      Random rand = new Random();
-      int dieChance = rand.nextInt(6);
-      if (dieChance > 3)
-      player.fireLevel--;
+    if (System.currentTimeMillis()/1000 - player.swingDelay > .01f){
+      player.hasSwung   = false;
       }
       
     }

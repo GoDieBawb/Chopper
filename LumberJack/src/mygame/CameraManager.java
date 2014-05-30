@@ -33,12 +33,16 @@ public class CameraManager extends AbstractAppState {
   //Creates camera
   public void initCamera(){
     //Creates a new chase cam and attached it to the player.model for the game
-    cam = new ChaseCamera(this.app.getCamera(), player.model, this.app.getInputManager());
-    cam.setMinDistance(5);
-    cam.setMaxDistance(10);
     cam = new ChaseCamera(this.app.getCamera(), player, this.app.getInputManager());
+    cam.setMinDistance(3);
+    cam.setMaxDistance(7);
     cam.setDragToRotate(true);
     cam.setRotationSpeed(5f);
+    cam.setLookAtOffset(player.getLocalTranslation().add(0, .6f, 0));
+    cam.setDefaultVerticalRotation(.145f);
+    cam.setMaxVerticalRotation(.145f);
+    cam.setMinVerticalRotation(.145f);
+    cam.setDownRotateOnCloseViewOnly(false);
     }
   
   }

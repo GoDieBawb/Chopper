@@ -30,6 +30,7 @@ public class TreeManager extends AbstractAppState {
   private Material          barkMat;
   private Node              rootNode;
   private BulletAppState    physics;
+  private long              treeSpread;
   public  Node              treeNode;
   
   @Override
@@ -46,13 +47,14 @@ public class TreeManager extends AbstractAppState {
     rootNode.attachChild(treeNode);
     leafMat.setColor("Color", ColorRGBA.Green);
     barkMat.setColor("Color", ColorRGBA.Brown);
+    treeSpread = System.currentTimeMillis()/1000;
     }
   
   private void createTree() {
     Tree tree     = new Tree();
     tree.model    = (Node) assetManager.loadModel("Models/Tree/Tree.j3o");
     tree.treePhys = new RigidBodyControl();
-    tree.health  = 10;
+    tree.health  = 5;
     Node a       = (Node) tree.model.getChild("Tree");
     tree.setName("Tree");
     a.getChild(0).setMaterial(leafMat);
@@ -69,21 +71,22 @@ public class TreeManager extends AbstractAppState {
     Random rand = new Random();
     int xSpot   = rand.nextInt(100) - 50;
     int zSpot   = rand.nextInt(100) - 50;
-
-    while (Math.abs(zSpot) < 10) {
-      zSpot   = rand.nextInt(100) - 50;
-      }
     
-    while (Math.abs(xSpot) < 10) {
-      xSpot   = rand.nextInt(100) - 50;
-      }   
     tree.setLocalTranslation(xSpot, .5f, zSpot);
-    tree.treePhys.setPhysicsLocation(new Vector3f(xSpot, 3, zSpot));
+    tree.treePhys.setPhysicsLocation(new Vector3f(xSpot, 3, zSpot));  
+    while (tree.getLocalTranslation().distance(new Vector3f(0,0,0)) < 20) {
+      placeTree(tree);
+      } 
     }
   
   @Override
   public void update(float tpf){
     
+    if (System.currentTimeMillis()/1000 - treeSpread > 3) {
+      treeSpread = System.currentTimeMillis()/1000;
+      createTree();
+      }  
+      
     for (int i = 0; i < treeNode.getChildren().size(); i++) {
       Tree currentTree = (Tree) treeNode.getChild(i);
       
@@ -93,8 +96,10 @@ public class TreeManager extends AbstractAppState {
         Player player = stateManager.getState(PlayerManager.class).player;
         player.score++;
         
-        if(player.wood < 9)
+        if(player.wood < 10){
         player.wood++;
+        //stateManager.getState(GuiManager.class).woodInd.setCurrentValue(player.wood);
+        }
         
         physics.getPhysicsSpace().remove(currentTree.treePhys);
         currentTree.removeFromParent();
@@ -105,6 +110,14 @@ public class TreeManager extends AbstractAppState {
     if (treeNode.getChildren().size() < 10) {
       createTree();
       }
+    
+    if (treeNode.getChildren().size() > 30) {
+      stateManager.getState(PlayerManager.class).player.isDead = true;
+      stateManager.getState(InteractionManager.class).setEnabled(false);
+      stateManager.getState(PlayerManager.class).setEnabled(false);
+      this.setEnabled(false);
+      stateManager.getState(GuiManager.class).showTitleText("You Lose");
+      } 
 
     }
   

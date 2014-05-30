@@ -40,7 +40,7 @@ public class InteractionManager extends AbstractAppState implements ActionListen
     this.stateManager = this.app.getStateManager();
     this.assetManager = this.app.getAssetManager();
     this.inputManager = this.app.getInputManager();
-    this.player = this.stateManager.getState(PlayerManager.class).player;
+    this.player       = this.stateManager.getState(PlayerManager.class).player;
     setUpKeys();
     }
   
@@ -104,20 +104,28 @@ public class InteractionManager extends AbstractAppState implements ActionListen
         camDir.set(this.app.getCamera().getDirection()).multLocal(10.0f, 0.0f, 10.0f);
         camLeft.set(this.app.getCamera().getLeft()).multLocal(10.0f);
         walkDirection.set(0, 0, 0);
-        if (left) {
-            walkDirection.addLocal(camLeft);
-        }
-        if (right) {
-            walkDirection.addLocal(camLeft.negate());
-        }
+        
         if (up) {
             walkDirection.addLocal(camDir);
+            player.run();
         }
-        if (down) {
+        else if (down) {
             walkDirection.addLocal(camDir.negate());
+            player.run();
+        }
+        else if (left) {
+            walkDirection.addLocal(camLeft);
+            player.run();
+        }
+        else if (right) {
+            walkDirection.addLocal(camLeft.negate());
+            player.run();
+        
+        } else {
+            player.idle();
         }
         
-       player.playerPhys.setWalkDirection(walkDirection.multLocal(1));
+       player.playerPhys.setWalkDirection(walkDirection.mult(player.speedMult));
        player.playerPhys.setViewDirection(camDir);
 
     }
