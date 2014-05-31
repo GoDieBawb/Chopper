@@ -78,7 +78,7 @@ public class PlayerManager extends AbstractAppState {
     
     player.addControl(player.playerPhys);
     physics.getPhysicsSpace().add(player.playerPhys);
-    player.playerPhys.warp(new Vector3f(0, 5, 0));
+    player.playerPhys.warp(new Vector3f(5, 2, -5));
         
     player.scale(.3f);
     
