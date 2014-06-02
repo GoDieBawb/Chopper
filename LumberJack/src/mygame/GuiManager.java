@@ -140,7 +140,7 @@ public class GuiManager extends AbstractAppState {
     }
 
   private void initJoyStick(){
-    stick = new Joystick(screen, Vector2f.ZERO, (int)70) {
+    stick = new Joystick(screen, Vector2f.ZERO, (int)screen.getWidth()/6) {
     @Override
     public void onUpdate(float tpf, float deltaX, float deltaY) {
         float dzVal = .2f;  // Dead zone threshold
