@@ -17,7 +17,6 @@ import com.jme3.collision.CollisionResults;
 import com.jme3.material.Material;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Node;
-import com.jme3.scene.Spatial;
 import com.jme3.texture.Texture;
 
 /**
@@ -57,6 +56,7 @@ public class PlayerManager extends AbstractAppState {
     Texture    tex     = assetManager.loadTexture(key);
     Material   mat     = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
     player.playerPhys  = new BetterCharacterControl(.1f, 1.5f, 100f);
+    player.highScore   = player.readScore(stateManager);
     
     mat.setTexture("ColorMap", tex);
     player.model.setLocalTranslation(0, 1.75f, 0);
@@ -78,7 +78,7 @@ public class PlayerManager extends AbstractAppState {
     
     player.addControl(player.playerPhys);
     physics.getPhysicsSpace().add(player.playerPhys);
-    player.playerPhys.warp(new Vector3f(5, 2, -5));
+    player.playerPhys.warp(new Vector3f(15, 2, -5));
         
     player.scale(.3f);
     
@@ -98,33 +98,68 @@ public class PlayerManager extends AbstractAppState {
     
     }
   
+  private void rotate(){
+      
+   InteractionManager inter = app.getStateManager().getState(InteractionManager.class);
+   boolean up    = inter.up;
+   boolean down  = inter.down;
+   boolean left  = inter.left;
+   boolean right = inter.right;
+    
+    if (up) {
+      
+      if (left) {
+        player.playerPhys.setViewDirection(new Vector3f(999,0,999));
+        }
+      
+      else if (right) {
+        player.playerPhys.setViewDirection(new Vector3f(-999,0,999));
+        }
+      
+      else {
+        player.playerPhys.setViewDirection(new Vector3f(0,0,999));
+        }
+      
+      }
+    
+    else if (down) {
+      
+      if (left) {
+        player.playerPhys.setViewDirection(new Vector3f(999,0,-999));
+        }
+      
+      else if (right) {
+        player.playerPhys.setViewDirection(new Vector3f(-999,0,-999));
+        }
+      
+      else {
+        player.playerPhys.setViewDirection(new Vector3f(0,0,-999));
+        } 
+        
+      }
+    
+    else if (left) {
+      player.playerPhys.setViewDirection(new Vector3f(999,0,0));
+      }
+    
+    else if (right){
+      player.playerPhys.setViewDirection(new Vector3f(-999,0,0));
+      }
+    }
+  
   @Override
   public void update(float tpf){
     
-    if (player.swing) {
+    rotate();
+      
       CollisionResults results = new CollisionResults();
       treeNode.collideWith(player.model.getWorldBound(), results);
       
       if (results.size() > 0){
         Tree hitTree = (Tree) results.getCollision(0).getGeometry().getParent().getParent().getParent();
         hitTree.health--;
-        }
-      
-      Node bla = (Node) stateManager.getState(SceneManager.class).building;
-      Spatial fire = bla.getChild("Fire");
-      
-      if (player.getWorldTranslation().distance(fire.getWorldTranslation()) < 3) {
-        if (player.wood > 0) {
-          player.wood--;
-          //stateManager.getState(GuiManager.class).woodInd.setCurrentValue(player.wood);
-          player.fireLevel++;
-          }
-        }
-      
-      player.swing = false;
-      player.hasSwung = true;
-      
-      }
+        player.swing();
+        }  
     
     if (System.currentTimeMillis()/1000 - player.swingDelay > .01f){
       player.hasSwung   = false;

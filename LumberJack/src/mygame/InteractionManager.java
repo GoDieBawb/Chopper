@@ -16,6 +16,7 @@ import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.KeyTrigger;
 import com.jme3.input.controls.MouseButtonTrigger;
 import com.jme3.math.Vector3f;
+import com.jme3.scene.Node;
 
 /**
 *
@@ -60,73 +61,63 @@ public class InteractionManager extends AbstractAppState implements ActionListen
 
   public void onAction(String binding, boolean isPressed, float tpf) {
     //Spray water on click
-    if (binding.equals("Click") && !isPressed) {
-      
-      player.swing();    
+    if (binding.equals("Click") && !isPressed) {  
 
     } else if (binding.equals("Left")) {
         
       left = isPressed;
-      if (isPressed)
-      player.run();
-      else
-      player.idle();
       
     } else if (binding.equals("Right")) {
   
       right = isPressed;
-      if (isPressed)
-      player.run();
-      else
-      player.idle();
       
     } else if (binding.equals("Down")){
       
       down = isPressed;
-      if (isPressed)
-      player.run();
-      else
-      player.idle();
     
     } else if (binding.equals("Up")){
         
       up = isPressed;
-      if (isPressed)
-      player.run();
-      else
-      player.idle();
     }
         
     }
   
   @Override
-  public void update(float tpf){
+  public void update(float tpf) {
+      
         camDir.set(this.app.getCamera().getDirection()).multLocal(10.0f, 0.0f, 10.0f);
         camLeft.set(this.app.getCamera().getLeft()).multLocal(10.0f);
         walkDirection.set(0, 0, 0);
         
+        int xMove = 0;
+        int zMove = 0;
+        
         if (up) {
-            walkDirection.addLocal(camDir);
-            player.run();
+            zMove = 5;
         }
         else if (down) {
-            walkDirection.addLocal(camDir.negate());
-            player.run();
+            zMove = -5;
         }
-        else if (left) {
-            walkDirection.addLocal(camLeft);
-            player.run();
+        
+        if (left) {
+            xMove = 5;
         }
         else if (right) {
-            walkDirection.addLocal(camLeft.negate());
-            player.run();
+            xMove = -5;
         
+        } 
+        
+        if(up||down||left||right) {
+            
+          player.run();
+            
         } else {
-            player.idle();
-        }
+          player.idle();
+          }
         
-       player.playerPhys.setWalkDirection(walkDirection.mult(player.speedMult));
-       player.playerPhys.setViewDirection(camDir);
+       walkDirection.addLocal(xMove, 0, zMove); 
+        
+       player.playerPhys.setWalkDirection(walkDirection.mult(1));
 
     }
   

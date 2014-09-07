@@ -1,6 +1,7 @@
 package mygame;
 
 import com.jme3.app.SimpleApplication;
+import com.jme3.math.Vector3f;
 import com.jme3.renderer.RenderManager;
 
 /**
@@ -20,6 +21,7 @@ public class Main extends SimpleApplication {
     this.setDisplayFps(false);
     this.setDisplayStatView(false);
     this.getFlyByCamera().setEnabled(false);
+    cam.lookAt(new Vector3f(0,0,0), new Vector3f(0,1,0));
     this.stateManager.attach(new SceneManager());
     this.stateManager.attach(new TreeManager());
     this.stateManager.attach(new PlayerManager());

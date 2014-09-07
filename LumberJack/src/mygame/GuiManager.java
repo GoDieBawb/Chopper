@@ -19,6 +19,7 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector4f;
+import com.jme3.scene.Node;
 import com.jme3.texture.Texture;
 import tonegod.gui.controls.buttons.ButtonAdapter;
 import tonegod.gui.controls.extras.Indicator;
@@ -36,17 +37,16 @@ public class GuiManager extends AbstractAppState {
   private SimpleApplication app;
   private AppStateManager   stateManager;
   private AssetManager      assetManager;
-  private Indicator         fireInd;
+  private Indicator         treeInd;
   public  Indicator         woodInd;
   private TextElement       scoreText;
-  private TextElement       fireText;
-  private TextElement       woodText;
   private TextElement       titleText;
   private ButtonAdapter     startButton;
   private Joystick          stick;
   private Screen            screen;
   private BitmapFont        font;
   private Player            player;
+  private Node              treeNode;
   
   @Override
   public void initialize(AppStateManager stateManager, Application app){
@@ -57,6 +57,7 @@ public class GuiManager extends AbstractAppState {
     this.player       = this.app.getStateManager().getState(PlayerManager.class).player;
     font              = this.assetManager.loadFont("Interface/Fonts/Impact.fnt");
     screen            = new Screen(app, "tonegod/gui/style/atlasdef/style_map.gui.xml");
+    treeNode          = stateManager.getState(TreeManager.class).treeNode;
     screen.setUseTextureAtlas(true,"tonegod/gui/style/atlasdef/atlas.png");
     screen.setUseMultiTouch(true);
     this.app.getGuiNode().addControl(screen);
@@ -66,14 +67,10 @@ public class GuiManager extends AbstractAppState {
     stateManager.getState(InteractionManager.class).setEnabled(false);
     stateManager.getState(PlayerManager.class).setEnabled(false);
     stateManager.getState(TreeManager.class).setEnabled(false);
-    stateManager.getState(InteractionManager.class).setEnabled(false);
     
-    //initFireLevel();
-    //initWoodLevel();
+    //initTreeLevel();
     initScoreDisplay();
     initTitleDisplay();
-    //initFireDisplay();
-    //initWoodDisplay();
     initJoyStick();
     initStartButton();
     }
@@ -131,11 +128,14 @@ public class GuiManager extends AbstractAppState {
     titleText.setLocalTranslation(screen.getWidth() / 2f - titleText.getWidth()/1.8f, screen.getHeight() /2f + titleText.getHeight(), -1);
     }
   
-  public void showTitleText(String showText){
+  public void showTitleText(int highScore, boolean isHigh){
     startButton.show();
     titleText.show();
-    titleText.setText(showText);
-    titleText.setLocalTranslation(screen.getWidth() / 2f - titleText.getWidth()/1.8f, screen.getHeight() /2f + titleText.getHeight(), -1);
+    if (isHigh)
+    titleText.setText("New HighScore: " + highScore);
+    else
+    titleText.setText("HighScore: " + highScore);    
+    titleText.setLocalTranslation(screen.getWidth() / 2f - titleText.getWidth()/2f, screen.getHeight() /2f + titleText.getHeight()*1.2f, -1);
     startButton.setText("Play Again");
     }
 
@@ -144,36 +144,43 @@ public class GuiManager extends AbstractAppState {
     @Override
     public void onUpdate(float tpf, float deltaX, float deltaY) {
         float dzVal = .2f;  // Dead zone threshold
+
             if (deltaX < -dzVal) {
-                stateManager.getState(InteractionManager.class).up = false;
-                stateManager.getState(InteractionManager.class).down = false;
-                stateManager.getState(InteractionManager.class).left = true;
-                stateManager.getState(InteractionManager.class).right = false;
-            } else if (deltaX > dzVal) {
-                stateManager.getState(InteractionManager.class).up = false;
-                stateManager.getState(InteractionManager.class).down = false;
-                stateManager.getState(InteractionManager.class).left = false;
-                stateManager.getState(InteractionManager.class).right = true;
-            } else if (deltaY < -dzVal) {
-                stateManager.getState(InteractionManager.class).left = false;
-                stateManager.getState(InteractionManager.class).right = false;
-                stateManager.getState(InteractionManager.class).down = true;
-                stateManager.getState(InteractionManager.class).up = false;
-            } else if (deltaY > dzVal) {
-                stateManager.getState(InteractionManager.class).left = false;
-                stateManager.getState(InteractionManager.class).right = false;
-                stateManager.getState(InteractionManager.class).down = false;
-                stateManager.getState(InteractionManager.class).up = true;
-            } else {
-                stateManager.getState(InteractionManager.class).left = false;
-                stateManager.getState(InteractionManager.class).right = false;
-                stateManager.getState(InteractionManager.class).up = false;
-                stateManager.getState(InteractionManager.class).down = false;
-            }
+              stateManager.getState(InteractionManager.class).left  = true;
+              stateManager.getState(InteractionManager.class).right = false;
+              } 
             
-          player.speedMult = FastMath.abs(deltaY);
+            else if (deltaX > dzVal) {
+              stateManager.getState(InteractionManager.class).right = true;
+              stateManager.getState(InteractionManager.class).left  = false;
+              }
+            
+            else {
+              stateManager.getState(InteractionManager.class).right = false;
+              stateManager.getState(InteractionManager.class).left  = false; 
+              }
+            
+        
+            if (deltaY < -dzVal) {
+              stateManager.getState(InteractionManager.class).down = true;
+              stateManager.getState(InteractionManager.class).up   = false;
+              } 
+            
+            else if (deltaY > dzVal) {
+              stateManager.getState(InteractionManager.class).down = false;
+              stateManager.getState(InteractionManager.class).up   = true;
+              }
+            
+            else {
+              stateManager.getState(InteractionManager.class).up   = false;
+              stateManager.getState(InteractionManager.class).down = false;    
+              }
+            
+          player.speedMult  = FastMath.abs(deltaY);
           player.strafeMult = FastMath.abs(deltaX);
+          
           }
+    
         };
       // getGUIRegion returns region info “x=0|y=0|w=50|h=50″, etc
       TextureKey key = new TextureKey("Textures/barrel/D.png", false);
@@ -218,10 +225,10 @@ public class GuiManager extends AbstractAppState {
     scoreText.setLocalTranslation(screen.getWidth() / 1.1f - scoreText.getWidth()/1.8f, screen.getHeight() / 1.05f - scoreText.getHeight()/2, -1);
     }
   
-  private void initFireLevel(){
-    fireInd = new Indicator(
+  private void initTreeLevel(){
+    treeInd = new Indicator(
       screen,
-      "Fire Ind",
+      "Tree Ind",
       new Vector2f(12,12),
       Indicator.Orientation.HORIZONTAL
       ) {
@@ -231,103 +238,22 @@ public class GuiManager extends AbstractAppState {
         }
       };
     
-    fireInd.setMaxValue(20);
-    fireInd.setCurrentValue(10f);
-    fireInd.setIndicatorColor(ColorRGBA.Red);
-    fireInd.setText("Fire Level");
-    fireInd.setTextWrap(LineWrapMode.NoWrap);
-    fireInd.setTextVAlign(VAlign.Center);
-    fireInd.setTextAlign(Align.Center);
-    fireInd.setFont("Interface/Fonts2/Impact.fnt");
-    fireInd.setBaseImage(screen.getStyle("Window").getString("defaultImg"));
-    fireInd.setIndicatorPadding(new Vector4f(7,7,7,7));
-    fireInd.setDimensions(150, 30);
-    screen.addElement(fireInd);
-    }
-
-  private void initWoodLevel(){
-    woodInd = new Indicator(
-      screen,
-      "Wood Ind",
-      new Vector2f(12,20),
-      Indicator.Orientation.HORIZONTAL
-      ) {
-
-    @Override
-      public void onChange(float currentValue, float currentPercentage) {
-        }
-      };
-    
-    woodInd.setMaxValue(10);
-    woodInd.setCurrentValue(0f);
-    woodInd.setIndicatorColor(ColorRGBA.Brown);
-    woodInd.setText("Wood Level");
-    woodInd.setTextWrap(LineWrapMode.NoWrap);
-    woodInd.setTextVAlign(VAlign.Center);
-    woodInd.setTextAlign(Align.Center);
-    woodInd.setFont("Interface/Fonts2/Impact.fnt");
-    woodInd.setBaseImage(screen.getStyle("Window").getString("defaultImg"));
-    woodInd.setIndicatorPadding(new Vector4f(7,7,7,7));
-    woodInd.setDimensions(150, 30);
-    screen.addElement(woodInd);
-    }
-  
-  private void initFireDisplay(){
-    fireText = new TextElement(screen, "FireText", Vector2f.ZERO, new Vector2f(300,50), font) {
-    @Override
-    public void onUpdate(float tpf) { }
-    @Override
-    public void onEffectStart() { }
-    @Override
-    public void onEffectStop() { }
-    };
-    
-    //Sets up the details of the fire display
-    fireText.setIsResizable(false);
-    fireText.setIsMovable(false);
-    fireText.setTextWrap(LineWrapMode.NoWrap);
-    fireText.setTextVAlign(VAlign.Center);
-    fireText.setTextAlign(Align.Center);
-    fireText.setFontSize(18);
- 
-    //Add the fire display
-    screen.addElement(fireText);
-    
-    fireText.setText("Fire Level: " + player.fireLevel + "/20");
-    fireText.setLocalTranslation(screen.getWidth() / 10f - fireText.getWidth()/1.8f, screen.getHeight() / 1.05f - fireText.getHeight()/2, -1);
-    }
-  
-  private void initWoodDisplay(){
-    woodText = new TextElement(screen, "WoodText", Vector2f.ZERO, new Vector2f(300,50), font) {
-    @Override
-    public void onUpdate(float tpf) { }
-    @Override
-    public void onEffectStart() { }
-    @Override
-    public void onEffectStop() { }
-    };
-    
-    //Sets up the details of the wood display
-    woodText.setIsResizable(false);
-    woodText.setIsMovable(false);
-    woodText.setTextWrap(LineWrapMode.NoWrap);
-    woodText.setTextVAlign(VAlign.Center);
-    woodText.setTextAlign(Align.Center);
-    woodText.setFontSize(18);
- 
-    //Add the wood display
-    screen.addElement(woodText);
-    
-    woodText.setText("Current Wood: " + player.wood + "/10");
-    woodText.setLocalTranslation(screen.getWidth() / 10f - woodText.getWidth()/1.8f, screen.getHeight() / 1.1f - woodText.getHeight()/2, -1);
+    treeInd.setMaxValue(20);
+    treeInd.setCurrentValue(10f);
+    treeInd.setIndicatorColor(ColorRGBA.Red);
+    treeInd.setText("Trees");
+    treeInd.setTextWrap(LineWrapMode.NoWrap);
+    treeInd.setTextVAlign(VAlign.Center);
+    treeInd.setTextAlign(Align.Center);
+    treeInd.setFont("Interface/Fonts2/Impact.fnt");
+    treeInd.setBaseImage(screen.getStyle("Window").getString("defaultImg"));
+    treeInd.setIndicatorPadding(new Vector4f(7,7,7,7));
+    treeInd.setDimensions(150, 30);
+    screen.addElement(treeInd);
     }
   
   private void updateHud(){
     scoreText.setText("Trees Murdered: " + player.score);
-    //woodText.setText("Current Wood: " + player.wood + "/10");
-    //fireText.setText("Fire Level: " + player.fireLevel + "/20");
-    //fireInd.setCurrentValue(player.fireLevel);
-    //woodInd.setCurrentValue(player.wood);
     }
   
   

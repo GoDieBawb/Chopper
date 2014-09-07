@@ -14,6 +14,7 @@ import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
+import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
@@ -48,8 +49,9 @@ public class SceneManager extends AbstractAppState {
   
   private void initFloor(){
     RigidBodyControl floorPhys = new RigidBodyControl();
-    Material mat   = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+    Material mat   = assetManager.loadMaterial("Materials/Snow.j3m");
     Box box        = new Box(150, .2f, 150);
+    box.scaleTextureCoordinates(new Vector2f(10,10));
     Geometry floor = new Geometry("The Ground", box);
     mat.setColor("Color", ColorRGBA.White);
     floor.setMaterial(mat);

@@ -12,6 +12,7 @@ import com.jme3.app.AndroidHarness;
 import com.jme3.system.android.AndroidConfigChooser.ConfigType;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
+import mygame.AndroidManager;
  
 public class MainActivity extends AndroidHarness{
  
@@ -23,6 +24,7 @@ public class MainActivity extends AndroidHarness{
      */
  
     private AdView adView;
+    private AndroidManager androidManager;
     
     public MainActivity(){
         // Set the application class to run
@@ -45,24 +47,35 @@ public class MainActivity extends AndroidHarness{
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        adView = new AdView(this);
-        adView.setAdSize(AdSize.SMART_BANNER);
-        adView.setAdUnitId("ca-app-pub-9434547190848397/1689077861");
-        adView.buildLayer();
  
-        LinearLayout ll = new LinearLayout(this);
-        ll.setGravity(Gravity.TOP);
-        ll.addView(adView);
-        addContentView(ll, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        int androidVersion = android.os.Build.VERSION.SDK_INT;
         
-        AdRequest adRequest = new AdRequest.Builder()
-        .build();
+      if (app != null) {
+        app.getStateManager().attach(new AndroidManager());
+        androidManager = app.getStateManager().getState(AndroidManager.class);
+        androidManager.setFilePath(getFilesDir().toString());
+        }
+        
+        if (androidVersion > 10) {
+          adView = new AdView(this);
+          adView.setAdSize(AdSize.SMART_BANNER);
+          adView.setAdUnitId("ca-app-pub-9434547190848397/1689077861");
+          adView.buildLayer();
+ 
+          LinearLayout ll = new LinearLayout(this);
+          ll.setGravity(Gravity.BOTTOM);
+          ll.addView(adView);
+          addContentView(ll, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+         
+          AdRequest adRequest = new AdRequest.Builder()
+          .build();
 
-        // Start loading the ad in the background.
-        adView.loadAd(adRequest);
-        adView.bringToFront();
-        adView.requestFocus();
-        
+          // Start loading the ad in the background.
+          adView.loadAd(adRequest);
+          adView.bringToFront();
+          adView.requestFocus();
+          }
+
         }
         
     

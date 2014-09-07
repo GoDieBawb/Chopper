@@ -54,8 +54,8 @@ public class TreeManager extends AbstractAppState {
     Tree tree     = new Tree();
     tree.model    = (Node) assetManager.loadModel("Models/Tree/Tree.j3o");
     tree.treePhys = new RigidBodyControl();
-    tree.health  = 5;
-    Node a       = (Node) tree.model.getChild("Tree");
+    tree.health   = 2;
+    Node a        = (Node) tree.model.getChild("Tree");
     tree.setName("Tree");
     a.getChild(0).setMaterial(leafMat);
     a.getChild(1).setMaterial(barkMat);
@@ -82,7 +82,7 @@ public class TreeManager extends AbstractAppState {
   @Override
   public void update(float tpf){
     
-    if (System.currentTimeMillis()/1000 - treeSpread > 3) {
+    if (System.currentTimeMillis()/1000 - treeSpread > 1) {
       treeSpread = System.currentTimeMillis()/1000;
       createTree();
       }  
@@ -112,11 +112,21 @@ public class TreeManager extends AbstractAppState {
       }
     
     if (treeNode.getChildren().size() > 30) {
-      stateManager.getState(PlayerManager.class).player.isDead = true;
+      Player player  = stateManager.getState(PlayerManager.class).player;
+      player.isDead  = true;
+      boolean isHigh = false;
       stateManager.getState(InteractionManager.class).setEnabled(false);
       stateManager.getState(PlayerManager.class).setEnabled(false);
       this.setEnabled(false);
-      stateManager.getState(GuiManager.class).showTitleText("You Lose");
+      
+      if (player.score > player.highScore) {
+        isHigh = true;
+        player.highScore = player.score;
+        player.saveScore(player.score, stateManager);
+        }
+      
+      stateManager.getState(GuiManager.class).showTitleText(player.highScore, isHigh);
+      
       } 
 
     }
